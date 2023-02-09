@@ -1,6 +1,8 @@
 import datetime as dt
 import pandas as pd
+import configparser
 import mysql.connector
+import requests
 stockdata = input('\n\t\t\t\t****Select any Company Name****\n')
 ts1 = str(int(dt.datetime(2023,2,1).timestamp()))
 ts2 = str(int(dt.datetime(2023,2,8).timestamp()))
@@ -33,6 +35,22 @@ cnx = mysql.connector.connect(
   database="database_name"
 )
 
+# Create a ConfigParser object
+config = configparser.ConfigParser()
+
+# Add a section to the ConfigParser object
+config['DATABASE'] = {
+    'Name': 'Company_name',
+    'open': 'open_price',
+    'close': 'closed_price',
+    'adj close': ' adjust_close price'
+}
+
+# Write the configuration to a file
+with open('config.data', 'w') as configfile:
+    config.write(configfile)
+
+
 # Create the table (if it doesn't already exist)
 cursor = cnx.cursor()
 table_create_query = """
@@ -57,3 +75,15 @@ cnx.commit()
 # Close the cursor and connection
 cursor.close()
 cnx.close()
+
+# Make a GET request to an API endpoint
+response = requests.get("https://finance.yahoo.com/")
+
+# Check the status code of the response
+if response.status_code == 200:
+    # If the request was successful, parse the JSON data
+    data = response.json()
+    print(data)
+else:
+    # If the request was unsuccessful, print an error message
+    print("Request failed with status code:", response.status_code)
